@@ -14,7 +14,7 @@
 1. run ansible-playbook -i control-node/inventory.yaml prepare-proxmox-installer-playbook.yaml
 
 ### install-ansible.sh does the following:
-1. From (Ansible's Installing Ansible on Debian)[https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html#installing-ansible-on-debian]
+1. From Ansible's [Installing Ansible on Debian](https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html#installing-ansible-on-debian)
 ```
   UBUNTU_CODENAME=jammy
   wget -O- "https://keyserver.ubuntu.com/pks/lookup?fingerprint=on&op=get&search=0x6125E2A8C77F2818FB7BD15B93C4A3FD7BB9C367" | sudo gpg --dearmour -o /usr/share/keyrings/ansible-archive-keyring.gpg
@@ -51,7 +51,7 @@ If this kicks out errors you'll need to apply the changes manually
 1. `VOL_DATE=$(xorriso -dev proxmox-ve_8.4-1.iso -report_system_area cmd 2>/dev/null)`
 1. `xorriso -boot_image any keep $VOL_DATE -dev proxmox-ve_8.4-1.iso -outdev promox-ve_8.4-1-updated.iso -update pve-installer-updated.squashfs /pve-installer.squashfs`
 
-See: (This page)[https://gist.github.com/Cogohi/b26fd0859c171c82efa6873479cdb158#usage] for how to use the new ISO
+See: [This gist](https://gist.github.com/Cogohi/b26fd0859c171c82efa6873479cdb158#usage) for how to use the new ISO
 
 1. ln -s proxmox-ve_8.4-1-updated.iso proxmox.iso
 1. zstd -d initrd.img -c > prxeboot/initrd
