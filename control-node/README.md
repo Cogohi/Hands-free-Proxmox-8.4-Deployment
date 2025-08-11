@@ -13,7 +13,7 @@
 1. run ansible-playbook -i control-node/inventory.yaml prepare-control-node-playbook.yaml
 1. run ansible-playbook -i control-node/inventory.yaml prepare-proxmox-installer-playbook.yaml
 
-# install-ansible.sh does the following:
+### install-ansible.sh does the following:
 1. From (Ansible's Installing Ansible on Debian)[https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html#installing-ansible-on-debian]
 ```
   UBUNTU_CODENAME=jammy
@@ -22,7 +22,7 @@
   sudo apt update && sudo apt install ansible
 ```
 
-# prepare-control-node-playbook.yaml does the following: 
+### prepare-control-node-playbook.yaml does the following: 
 1. `sudo apt install apache2 dnsmasq squashfs-tools xorriso`
 1. Sets up dnsmasq for proxydhcp and tftp
 1. creats /var/tftproot /var/www/html/iPXE /var/www/html/proxmox /var/local/control-node
@@ -32,7 +32,7 @@
 1. cp -r files/cnmanager /var/www/html/ <- TODO web app to manage network inventory
 1. generates /etc/dnsmasq.d/dhcpproxy from files/dhcpproxy.tmpl (unless we can get away with a straight cp)
 
-# prepare-proxmox-installer-playbook.yaml does the following:
+### prepare-proxmox-installer-playbook.yaml does the following:
 1. sudo mkdir /mnt/cdrom
 1. cd tmp  (make sure the filesystem has a few Gb of free space)
 1. wget https://enterprise.proxmox.com/iso/proxmox-ve_8.4-1.iso
