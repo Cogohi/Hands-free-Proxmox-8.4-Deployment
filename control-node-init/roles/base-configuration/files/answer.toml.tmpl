@@ -1,0 +1,24 @@
+[global]
+keyboard = "en-us"
+country = "us"
+fqdn = "{FQDN}"
+mailto = "root@localhost.localdomain"
+timezone = "America/New_York"
+root-password = "{ROOT_PASSWORD}"
+
+[network]
+source = "from-answer"
+cidr = "{CIDR}"
+dns = "{DNS_SERVER}"
+gateway = "{GATEWAY}"
+filter.ID_NET_NAME_MAC = "*{MAC}"
+
+[disk-setup]
+filesystem = "ext4"
+# TODO: DISKS is a csv (e.g. "sda","sdc")
+disk-list = [{DISKS}]
+
+[first-boot]
+source = "from-url"
+ordering = "fully-up"
+url = "http://{SERVER_ADDR}/proxmox/first-boot.sh"
