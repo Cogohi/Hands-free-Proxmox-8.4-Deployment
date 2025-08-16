@@ -32,6 +32,9 @@ while IFS= read -r line; do
   cmds+=( $name "" "off" )
 done < <(lsblk -Adro NAME,TYPE | grep disk)
 
+# intall the dialog and jq utilities
+sudo apt -y install dialog jq
+
 # gather info from the user
 capture dialog "${cmds[@]}"
 choice=$captured
