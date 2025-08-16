@@ -1,6 +1,11 @@
 # Known working dnsmasq version 2.85 config for iPXE proxydhcp usage
+
 # Debug logging
 log-debug
+log-dhcp
+
+# Uncomment and 'systemctl restart dnsmasq' to tell dnsmasq to write to its own file
+#log-facility=/var/log/dnsmasq.log
 
 # Disable DNS server
 port=0
@@ -66,5 +71,4 @@ dhcp-boot=tag:ipxe-ok-{{ interface.name }},http://{{ interface.address }}/iPXE/b
 enable-tftp
 tftp-root=/var/tftproot/
 
-log-dhcp
 
