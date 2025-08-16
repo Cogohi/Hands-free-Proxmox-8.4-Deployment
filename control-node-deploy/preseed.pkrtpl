@@ -67,7 +67,7 @@ d-i base-installer/kernel/image string linux-image-amd64
 
 ### Package selection
 tasksel tasksel/first multiselect standard, server
-d-i pkgsel/include string build-essential dnsmasq git openssh-server packer php squashfs-tools xorriso
+d-i pkgsel/include string build-essential dnsmasq git openssh-server packer php python3-click-default-group sqlite-utils squashfs-tools xorriso
 d-i pkgsel/install-language-support boolean false
 
 # Completely shut down so Packer doesn't pitch a fit

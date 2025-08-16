@@ -1,0 +1,140 @@
+- name: Get all interfaces with an ipv4 interface)
+  ansible.builtin.set_fact:
+    available_if: "{{ available_if + [ { 'name': item, 'address': ansible_facts[item]['ipv4']['address'] } ] }}"
+  with_items:
+    - "{{ interfaces }}"
+  when:
+    - ansible_facts[item]['ipv4'] is defined
+
+- name: Create /mnt/cdrom
+  ansible.builtin.file:
+    path: /mnt/cdrom
+    state: directory
+    mode: '0755'
+
+- name: Create /var/hfp
+  ansible.builtin.file:
+    path: /var/hfp
+    state: directory
+    mode: '0755'
+
+# Note: `dest` must be the full path otherwise it will re-download even if the checksum matches
+
+- name: Populate /var/hfp with Debian Live
+  ansible.builtin.get_url:
+    url: https://cdimage.debian.org/cdimage/archive/12.11.0-live/amd64/iso-hybrid/debian-live-12.11.0-amd64-standard.iso
+    dest: /var/hfp/debian-live-12.11.0-amd64-standard.iso
+    checksum: sha512:https://cdimage.debian.org/cdimage/archive/12.11.0-live/amd64/iso-hybrid/SHA512SUMS
+
+- name: Populate /var/hfp with Proxmox 8.4
+  ansible.builtin.get_url:
+    url: https://enterprise.proxmox.com/iso/proxmox-ve_8.4-1.iso
+    dest: /var/hfp/proxmox-ve_8.4-1.iso
+    checksum: sha256:https://enterprise.proxmox.com/iso/SHA256SUMS
+
+- name: Create /var/tftproot
+  ansible.builtin.file:
+    path: /var/tftproot
+    state: directory
+    mode: '0755'
+
+- name: Populate /var/tftproot
+  ansible.builtin.get_url:
+    url: "{{ 'https://boot.ipxe.org/' + item }}"
+    dest: /var/tftproot
+    mode: '0644'
+  with_items:
+    - snponly.efi
+    - undionly.kpxe
+
+- name: Create /var/www/data
+  ansible.builtin.file:
+    path: /var/www/data
+    state: directory
+    mode: '0775'
+    owner: www-data
+    group: www-data
+
+- name: Populate /var/www/data
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /var/www/data
+    mode: 0644
+  with_items:
+    - boot.txt.tmpl
+    - register.sh.tmpl
+
+# Initialize cmdb.db in /var/www/data
+
+- name: Create /var/www/html subdirs
+  ansible.builtin.file:
+    path: "{{ '/var/www/html/' + item }}"
+    state: directory
+    mode: '0755'
+  with_items:
+    - iPXE
+    - live
+    - net-info
+    - proxmox
+
+- name: Populate /var/www/html/iPXE
+  ansible.builtin.copy:
+    src: boot.php
+    dest: /var/www/html/iPXE
+    mode: 0644
+
+- name: Populate /var/www/html/net-info
+  ansible.builtin.copy:
+    src: register.php
+    dest: /var/www/html/net-info
+    mode: 0644
+
+# TODO: Populate dirs with included files
+# proxmox/
+#   answer.php
+#   first-boot.php
+
+- name: Create /etc/dnsmasq.d/dhcpproxy
+  ansible.builtin.template:
+    src: dhcpproxy.j2
+    dest: /etc/dnsmasq.d/dhcpproxy
+  register: status
+
+- name: Restart dnsmasq and make sure it is enabled
+  ansible.builtin.systemd_service:
+    name: dnsmasq
+    state: "restarted"
+    enabled: true
+    masked: no
+  when: status.changed
+
+- name: Mount Deiban Live to /mnt/cdrom
+  ansible.posix.mount:
+    path: /mnt/cdrom
+    src: /var/hfp/debian-live-12.11.0-amd64-standard.iso
+    fstype: iso9660
+    opts: ro,noauto
+    state: ephemeral
+
+- name: Copy flies from the live iso to /var/www/html/live
+  ansible.builtin.copy:
+    src: "/mnt/cdrom/live/{{ item }}"
+    dest: /var/www/html/live
+    mode: 0644
+  with_items:
+    - filesystem.squashfs
+    - initrd.img-6.1.0-35-amd64
+    - vmlinuz-6.1.0-35-amd64
+
+- name: Unmount Deiban Live to /mnt/cdrom
+  ansible.posix.mount:
+    path: /mnt/cdrom
+    state: unmounted
+
+# Download and mount Proxmox installer
+# Unbundle, patch, and rebake
+# Build new initrd with iso
+# copy to /var/www/html/proxmox/
+#   initrd
+#   linux26
+

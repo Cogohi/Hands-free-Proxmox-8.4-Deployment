@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# from: https://stackoverflow.com/a/59829273
+capture () {
+    { captured=$( { { "$@" ; } 1>&3 ; } 2>&1); } 3>&1
+}
+
+# bash arrays FTW
+
+NET_PREFIX="{NET_PREFIX}"
+
+# construct the commands for dialog
+# The Installation Type options are passed from register.php
+cmds=(
+    --separate-widget "|"
+    --ascii-lines --clear
+    --menu "Installation Type" 12 45 25
+        {INSTALL_TYPES}
+    --and-widget
+    --ascii-lines --clear --separator "|"
+    --form "Please supply the following:" 12 40 2
+        "Hostname:" 1 1 "" 1 12 15 0
+        "IP Address:" 2 1 $NET_PREFIX 2 12 15 0
+    --and-widget
+    --ascii-lines --clear --separator ","
+    --checklist "disks" 15 10 10
+)
+
+# add the disks
+while IFS= read -r line; do
+  name=$(echo $line|cut -d " " -f 1)
+  cmds+=( $name "" "off" )
+done < <(lsblk -Adro NAME,TYPE | grep disk)
+
+# gather info from the user
+capture dialog "${cmds[@]}"
+choice=$captured
+
+# get the mac addresses
+macs=$(cat /sys/class/net/*/address|paste -sd ',' -)
+
+# clean up the screen
+clear
+
+# do something useful with the results
+wget -nv --post-data="$choice|$macs" -O - {REGISTRATION_HOOK}
+
