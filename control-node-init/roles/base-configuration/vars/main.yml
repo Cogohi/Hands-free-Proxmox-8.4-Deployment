@@ -1,0 +1,2 @@
+available_if: []
+interfaces: "{{ ansible_interfaces | difference(['lo']) }}"

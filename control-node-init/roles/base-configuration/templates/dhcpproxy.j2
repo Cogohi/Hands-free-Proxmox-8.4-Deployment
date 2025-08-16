@@ -1,0 +1,70 @@
+# Known working dnsmasq version 2.85 config for iPXE proxydhcp usage
+# Debug logging
+log-debug
+
+# Disable DNS server
+port=0
+
+# send disable multicast and broadcast discovery, and to download the boot file immediately
+# DHCP_PXE_DISCOVERY_CONTROL, should be vendor option? Needs more understanding and source
+dhcp-option=vendor:PXEClient,6,2b
+
+# This range(s) is for the public interface, where dnsmasq functions
+# as a proxy DHCP server providing boot information but no IP leases.
+# Any ip in the subnet will do, so you may just put your server NIC ip here.
+# Can be repeated if there are mulitple nics
+
+{% for interface in available_if %}
+dhcp-range=set:interface-{{ interface.name }},{{ interface.address }},proxy
+{% endfor %}
+
+# listen on all interfaces
+bind-dynamic
+# Disable re-use of the DHCP servername and filename fields as extra
+# option space. That's to avoid confusing some old or broken DHCP clients.
+dhcp-no-override
+
+# Based on logic in https://gist.github.com/robinsmidsrod/4008017
+# iPXE sends a 175 option, checking suboptions
+dhcp-match=set:ipxe-http,175,19
+dhcp-match=set:ipxe-https,175,20
+dhcp-match=set:ipxe-menu,175,39
+# pcbios specific
+dhcp-match=set:ipxe-pxe,175,33
+dhcp-match=set:ipxe-bzimage,175,24
+dhcp-match=set:ipxe-iscsi,175,17
+# efi specific
+dhcp-match=set:ipxe-efi,175,36
+# combination
+# set ipxe-ok tag if we have correct combination
+# http && menu && iscsi ((pxe && bzimage) || efi)
+tag-if=set:ipxe-ok,tag:ipxe-http,tag:ipxe-menu,tag:ipxe-iscsi,tag:ipxe-pxe,tag:ipxe-bzimage
+tag-if=set:ipxe-ok,tag:ipxe-http,tag:ipxe-menu,tag:ipxe-iscsi,tag:ipxe-efi
+
+# per interface tags
+{% for interface in available_if %}
+tag-if=set:ipxe-ok-{{ interface.name }},tag:ipxe-ok,tag:interface-{{ interface.name }}
+{% endfor %}
+
+#pxe-service=[tag:<tag>,]<CSA>,<menu text>[,<basename>|<bootservicetype>][,<server address>|<server_name>]
+#pxe-prompt=[tag:<tag>,]<prompt>[,<timeout>]
+# these create option 43 cruft, which is required in proxy mode
+# TFTP IP is required on all dhcp-boot lines (unless dnsmasq itself acts as tftp server?)
+pxe-service=tag:!ipxe-ok,X86PC,PXE,undionly.kpxe
+pxe-service=tag:!ipxe-ok,IA32_EFI,PXE,snponlyx32.efi
+pxe-service=tag:!ipxe-ok,BC_EFI,PXE,snponly.efi
+pxe-service=tag:!ipxe-ok,X86-64_EFI,PXE,snponly.efi
+
+# later match overrides previous, keep ipxe script last
+# server address must be non zero, but can be anything as long as iPXE script is not fetched over TFTP
+
+{% for interface in available_if %}
+dhcp-boot=tag:ipxe-ok-{{ interface.name }},http://{{ interface.address }}/iPXE/boot.php,0.0.0.1
+{% endfor %}
+
+# To use internal TFTP server enabled these, recommended is otherwise atftp
+enable-tftp
+tftp-root=/var/tftproot/
+
+log-dhcp
+

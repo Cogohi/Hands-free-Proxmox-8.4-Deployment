@@ -1,0 +1,8 @@
+- name: Initialize Control Node
+  hosts: localhost
+  become: true
+
+  tasks:
+    - name: Setup and configure dnsmasq
+      include_role:
+        name: base-configuration

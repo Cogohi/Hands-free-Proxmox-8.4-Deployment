@@ -1,0 +1,34 @@
+#!ipxe
+
+set webserver http://{HTTP_HOST}
+
+dhcp
+
+menu Options
+item --gap -- Your MAC is ${net0/mac}
+item --gap -- iPXE Server is {HTTP_HOST}
+item --gap -- --------------------------------
+item proxmox     Install Proxmox 8.4
+item live        Boot Debian 12 Live
+item shell       Drop to iPXE shell
+item exit        Exit to BIOS
+item --gap -- --------------------------------
+choose --default exit option && goto ${option}
+
+:proxmox
+set path ${webserver}/proxmox
+initrd ${path}/initrd
+chain ${path}/linux26 proxmox-start-auto-installer proxautohttp=${path}/answer.toml
+goto exit
+
+:live
+set path ${webserver}/live
+initrd ${path}/initrd.img-6.1.0-35-amd64
+chain ${path}/vmlinuz-6.1.0-35-amd64 dhcp boot=live fetch=${path}/filesystem.squashfs
+
+:shell
+shell
+
+:exit
+
+
