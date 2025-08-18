@@ -1,0 +1,49 @@
+iso_url               = "<VALID PACKER ISO REFERNCE>"
+iso_checksum          = "<ISO CHECKSUM>"
+iso-cache-file        = "<FULL PATH TO WHERE THE ISO IS or YOU WANT IT DOWNLOADED TO>"
+ova-export-dir        = "<FULL PATH TO THE DIRECTORY YOU WANT PACKER TO CREATE>"
+
+cpus                  = 2
+disk_size             = 10000
+memory                = 2048
+
+# Target
+hostname              = "<TARGET HOSTNAME>"
+domain                = "<TARGET DOMAIN NAME or blank>"
+address               = "<TARGET IPv4 ADDRESS>"
+netmask               = "<TARGET NETMASK>"
+gateway               = "<TARGET GATEWAY>"
+nameservers           = "<TARGET NAMESERVER>"
+
+host_nic_ip           = "<HOST MACHINE IP. see README.md>"
+host_nic_name         = "<HOST MACHINE NIC NAME. see README.md>"
+
+username              = "<USERNAME to create on TARGET>"
+sshpubkey             = "<SSH PUBLIC KEY. see README.md>"
+
+# Packer's ephemeral keys are not fit for (this) purpose.  Unfortunately this means the user needs
+# to generate their own keypair for this operation.  Packer cannot deal with a passphrase so make
+# sure that it is empty.
+#
+#   ssh-keygen[.exe] -t ed25519 -f id_ed25519 -q
+#
+# Explanation:
+#
+# tl;dr: The kernel command line has very limited space to play with.
+#
+# There's a hard limit of between 256 (default) and 4096 characters depending on how the kernel
+# was compiled.
+#
+# See the feaure proposal: https://github.com/hashicorp/packer/issues/7225
+#
+# The appalling thing is that a magic http_dir file was suggested but rejected by the contributors.
+
+# (Optional)
+# The directory where the keypair is stored.  If the path is blank, Packer will look in the directory.
+# where it was run.
+#
+# Note: If this is set it must have the trailing directory separator (e.g. "C:/path/to/keys/")
+#packer_keydir        = "C:/path/to/keys/"
+
+# The ssh private key's filename (e.g. id_ed25519).  The public key must be the same with a .pub extension (e.g. id_ed25519.pub)
+packer_keyfile        = "<PRIVATE KEY FILENAME. see README.md>"
